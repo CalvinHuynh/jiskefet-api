@@ -21,7 +21,7 @@ import {
 } from '@nestjs/common';
 import { LogService } from '../services/log.service';
 import { CreateLogDto } from '../dtos/create.log.dto';
-import { AuthGuard } from '@nestjs/passport';
+import { JwtAuthGuard } from '../common/auth.guard';
 import { QueryLogDto } from '../dtos/query.log.dto';
 import { LinkRunToLogDto } from '../dtos/linkRunToLog.log.dto';
 import { InfoLogService } from '../services/infolog.service';
@@ -33,10 +33,11 @@ import { HttpExceptionFilter } from '../filters/httpexception.filter';
 import { CreateAttachmentDto } from '../dtos/create.attachment.dto';
 import { Attachment } from '../entities/attachment.entity';
 import { AttachmentService } from '../services/attachment.service';
+import { ThreadDto } from 'dtos/thread.dto';
 
 @ApiUseTags('logs')
 @ApiBearerAuth()
-@UseGuards(AuthGuard())
+@UseGuards(JwtAuthGuard)
 @UseFilters(new HttpExceptionFilter())
 @Controller('logs')
 export class LogController {
@@ -72,7 +73,6 @@ export class LogController {
      * @param createAttachmentDto Data held in DTO from request body.
      */
     @Post(':id/attachments')
-    @UsePipes(ValidationPipe)
     @ApiOperation({ title: 'Creates a Attachment for a specific Log.' })
     @ApiCreatedResponse({ description: 'Succesfully created an Attachment.', type: Attachment })
     async createAttachment(
@@ -90,16 +90,22 @@ export class LogController {
     }
 
     /**
-     * Get all logs. /logs
+     * Get all logs or a thread.
      */
     @Get()
     @ApiOperation({ title: 'Returns all Logs.' })
-    @ApiOkResponse({ description: 'Succesfully returns Logs.' })
+    @ApiOkResponse({ description: 'Succesfully returned Logs.' })
     @ApiNotFoundResponse({ description: 'There are no Logs.' })
     async findAll(@Query() query?: QueryLogDto): Promise<ResponseObject<Log>> {
         try {
-            const getLogs = await this.logService.findAll(query);
-            return createResponseItems(getLogs.logs, undefined, getLogs.additionalInformation);
+            // check for threadId
+            if (query.threadId) {
+                const getThread = await this.logService.find(query);
+                return createResponseItem(getThread.logs as ThreadDto, undefined, getThread.additionalInformation);
+            } else {
+                const getLogs = await this.logService.find(query);
+                return createResponseItems(getLogs.logs as Log[], undefined, getLogs.additionalInformation);
+            }
         } catch (error) {
             return createErrorResponse(error);
         }
@@ -142,4 +148,5 @@ export class LogController {
             return createErrorResponse(error);
         }
     }
+
 }

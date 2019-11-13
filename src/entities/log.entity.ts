@@ -20,6 +20,7 @@ import { Tag } from './tag.entity';
 import { Attachment } from './attachment.entity';
 import { User } from './user.entity';
 import { Run } from './run.entity';
+import { ThreadDto } from '../dtos/thread.dto';
 import { ApiModelProperty } from '@nestjs/swagger';
 
 @Entity('log')
@@ -119,17 +120,11 @@ export class Log {
     })
     commentFkRootLogId: number;
 
-    @ManyToMany(type => Tag)
-    @JoinTable({
-        name: 'tags_in_log',
-        joinColumn: {
-            name: 'fk_log_id',
-            referencedColumnName: 'logId'
-        },
-        inverseJoinColumn: {
-            name: 'fk_tag_id',
-            referencedColumnName: 'tagId'
-        }
+    @ManyToMany(type => Tag, tag => tag.logs)
+    @ApiModelProperty({
+        type: Tag,
+        isArray: true,
+        minProperties: 1
     })
     tags: Tag[];
 
@@ -166,5 +161,20 @@ export class Log {
 
     constructor(data: Log | {} = {}) {
         Object.assign(this, data);
+    }
+
+    /**
+     * Method to convert Log to a ThreadDto
+     */
+    toThreadDto?(this: Log): ThreadDto {
+        const thread = new ThreadDto();
+        thread.logId = this.logId;
+        thread.commentFkParentLogId = this.commentFkParentLogId;
+        thread.commentFkRootLogId = this.commentFkRootLogId;
+        thread.creationTime = this.creationTime;
+        thread.body = this.body;
+        thread.title = this.title;
+        thread.user = this.user;
+        return thread;
     }
 }

@@ -106,6 +106,14 @@ describe('RunService', () => {
         });
     });
 
+    describe('getRunConfParams', () => {
+        it('should return params with runNumber 1 and 2', async () => {
+            const result = await runService.getRunConfParams(1, 2);
+            expect(result.Run1).toBe(1);
+            expect(result.Run2).toBe(2);
+        });
+    });
+
     describe('post()', () => {
         it('should create one run and return it', async () => {
             const result = await runService.create(runDto);
@@ -118,8 +126,8 @@ describe('RunService', () => {
             const runId = latestRun.runNumber;
 
             // retrieve the latest log
-            const logs = await logService.findAll(queryLogDto);
-            const latestLog = logs.logs[logs.logs.length - 1];
+            const logs = await logService.find(queryLogDto);
+            const latestLog = logs.logs[(logs.logs as Log[]).length - 1];
             const logId: LinkLogToRunDto = {
                 logId: latestLog.logId,
             };

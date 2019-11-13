@@ -5,7 +5,8 @@
  * GNU General Public Licence version 3 (GPL) version 3,
  * copied verbatim in the file "LICENSE"
  */
-
+import { CreatePdfService } from './services/createpdf.service';
+import { CreatepdfController } from './controllers/createpdf.controller';
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -64,6 +65,9 @@ import {
 import { FlpModule } from './modules/flp.module';
 import { FlpController } from './controllers/flp.controller';
 import { FlpSerivce } from './services/flp.service';
+import { TagModule } from './modules/tag.module';
+import { TagController } from './controllers/tag.controller';
+import { TagService } from './services/tag.service';
 
 let databaseOptions;
 // Use a different database for running tests.
@@ -91,7 +95,8 @@ if (process.env.NODE_ENV === 'test') {
     entities: ['src/**/**.entity{.ts,.js}'],
     logging: TYPEORM_LOGGING,
     synchronize: TYPEORM_SYNCHRONIZE === 'true' ? true : false,
-    migrations: ['src/migration/*{.ts,.js}']
+    migrations: ['src/migration/*{.ts,.js}', 'src/populate/*{.ts,.js}'],
+    migrationsRun: true
     // what to do with the cli variable from ormconfig.json
   };
 }
@@ -108,6 +113,7 @@ const authServiceProvider = {
     RunModule,
     LogModule,
     FlpModule,
+    TagModule,
     AttachmentModule,
     SubSystemModule,
     UserModule,
@@ -115,25 +121,28 @@ const authServiceProvider = {
     SubSystemPermissionModule,
     OverviewModule,
     InfoLogModule,
-    SettingModule
+    SettingModule,
   ],
   controllers: [
     AppController,
     RunController,
     LogController,
     FlpController,
+    TagController,
     AttachmentController,
     SubSystemController,
     UserController,
     AuthController,
     OverviewController,
-    SettingController
+    SettingController,
+    CreatepdfController
   ],
   providers: [
     AppService,
     RunService,
     LogService,
     FlpSerivce,
+    TagService,
     AttachmentService,
     SubSystemService,
     UserService,
@@ -144,7 +153,8 @@ const authServiceProvider = {
     OverviewService,
     InfoLogService,
     TimeUtility,
-    SettingService
+    SettingService,
+    CreatePdfService
   ],
 })
 export class AppModule { }
